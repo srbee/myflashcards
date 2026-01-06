@@ -1,1 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Cards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            touch-action: manipulation;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3/2;
+            perspective: 1000px;
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            transform: rotateY(180deg);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: white;
+        }
+
+        .nav-area {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 25%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: background 0.3s;
+        }
+
+        .nav-area:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-left {
+            left: 0;
+            border-radius: 20px 0 0 20px;
+        }
+
+        .nav-right {
+            right: 0;
+            border-radius: 0 20px 20px 0;
+        }
+
+        .arrow {
+            font-size: 40px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .flip-area {
+            position: absolute;
+            left: 25%;
+            right: 25%;
+            top: 0;
+            bottom: 0;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .shuffle-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .progress {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .arrow {
+                font-size: 30px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress" id="progress">Card 1 of 3</div>
+        
+        <div class="card-container">
+            <div class="card" id="card">
+                <div class="card-face card-front">
+                    <img id="frontImg" class="card-image" alt="Front of card">
+                </div>
+                <div class="card-face card-back">
+                    <img id="backImg" class="card-image" alt="Back of card">
+                </div>
+            </div>
+            
+            <div class="nav-area nav-left" id="prevBtn">
+                <div class="arrow">‹</div>
+            </div>
+            
+            <div class="flip-area" id="flipArea"></div>
+            
+            <div class="nav-area nav-right" id="nextBtn">
+                <div class="arrow">›</div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="shuffle-btn" id="shuffleBtn">🔀 Shuffle</button>
+            <button class="reset-btn" id="resetBtn">🔄 Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURE YOUR CARDS HERE
+        // Replace these paths with your actual image paths in the cards/ folder
+        const cardsData = [
+            { front: 'cards/card1-front.jpg', back: 'cards/card1-back.jpg' },
+            { front: 'cards/card2-front.jpg', back: 'cards/card2-back.jpg' },
+            { front: 'cards/card3-front.jpg', back: 'cards/card3-back.jpg' },
+            // Add more cards here as you upload them
+        ];
+
+        let cards = [...cardsData];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        const cardEl = document.getElementById('card');
+        const frontImg = document.getElementById('frontImg');
+        const backImg = document.getElementById('backImg');
+        const progress = document.getElementById('progress');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const flipArea = document.getElementById('flipArea');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        function loadCard() {
+            const card = cards[currentIndex];
+            frontImg.src = card.front;
+            backImg.src = card.back;
+            progress.textContent = `Card ${currentIndex + 1} of ${cards.length}`;
+            
+            if (isFlipped) {
+                cardEl.classList.remove('flipped');
+                isFlipped = false;
+            }
+        }
+
+        function flipCard() {
+            cardEl.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % cards.length;
+            loadCard();
+        }
+
+        function prevCard() {
+            currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+            loadCard();
+        }
+
+        function shuffleCards() {
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentIndex = 0;
+            loadCard();
+        }
+
+        function resetCards() {
+            cards = [...cardsData];
+            currentIndex = 0;
+            loadCard();
+        }
+
+        // Event listeners
+        flipArea.addEventListener('click', flipCard);
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            prevCard();
+        });
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            nextCard();
+        });
+        shuffleBtn.addEventListener('click', shuffleCards);
+        resetBtn.addEventListener('click', resetCards);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevCard();
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                flipCard();
+            }
+        });
+
+        // Load first card
+        loadCard();
+    </script>
+</body>
+</html>
